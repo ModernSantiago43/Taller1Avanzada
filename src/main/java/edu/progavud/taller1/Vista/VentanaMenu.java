@@ -4,13 +4,10 @@
  */
 package edu.progavud.taller1.Vista;
 
-/**
- *
- * @author Santiago
- */
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.awt.event.ActionListener;
 
 public class VentanaMenu extends JFrame {
     private CardLayout cardLayout;
@@ -29,7 +26,7 @@ public class VentanaMenu extends JFrame {
 
     private ArrayList<JButton> botonesCategorias;
 
-    private double totalFactura;  // Variable para llevar el total de la factura
+    private double totalFactura;
 
     public VentanaMenu() {
         setTitle("Menú Principal");
@@ -42,7 +39,6 @@ public class VentanaMenu extends JFrame {
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
 
-        // Panel de categorías
         JPanel panelCategorias = new JPanel(new BorderLayout());
         JPanel botonesPanel = new JPanel(new GridLayout(2, 4, 10, 10));
         String[] categorias = {"Hamburguesas", "Papas", "Wraps", "Nuggets", "Combos", "Cubetas", "Gaseosas"};
@@ -52,11 +48,9 @@ public class VentanaMenu extends JFrame {
             botonesCategorias.add(boton);
             botonesPanel.add(boton);
 
-            // Crear panel para la categoría con productos
             JPanel panelCategoria = crearPanelCategoria(categoria);
             cardPanel.add(panelCategoria, categoria);
 
-            // Acción para mostrar los productos de la categoría
             boton.addActionListener(e -> cardLayout.show(cardPanel, categoria));
         }
 
@@ -64,19 +58,26 @@ public class VentanaMenu extends JFrame {
         panelCategorias.add(botonesPanel, BorderLayout.CENTER);
         panelCategorias.add(botonMostrarCategorias, BorderLayout.SOUTH);
 
-        // **Botón Pagar agregado en esta sección**
         botonPagos = new JButton("Pagar");
         panelCategorias.add(botonPagos, BorderLayout.SOUTH);
 
         cardPanel.add(panelCategorias, "Categorias");
 
-        // Panel de factura
+        // Factura como ventana separada
         facturaArea = new JTextArea();
         facturaArea.setEditable(false);
         JScrollPane scrollFactura = new JScrollPane(facturaArea);
-        cardPanel.add(scrollFactura, "Factura");
+        JPanel panelFactura = new JPanel(new BorderLayout());
+        panelFactura.add(scrollFactura, BorderLayout.CENTER);
 
-        // Panel de pago
+        // Botón para ver la factura
+        botonFinalizar = new JButton("Ver Factura");
+        botonFinalizar.addActionListener(e -> mostrarFactura());
+        panelFactura.add(botonFinalizar, BorderLayout.SOUTH);
+
+        cardPanel.add(panelFactura, "Factura");
+
+        // Configuración de los pagos
         JPanel panelPago = new JPanel(new FlowLayout());
         botonEfectivo = new JButton("Pagar en efectivo");
         botonTarjeta = new JButton("Pagar con tarjeta");
@@ -87,7 +88,6 @@ public class VentanaMenu extends JFrame {
 
         cardPanel.add(panelPago, "Pago");
 
-        // Panel de estado de pago
         estadoPago = new JLabel("Estado de pago: Pendiente");
         ticketLabel = new JLabel("Ticket: No generado");
 
@@ -95,36 +95,47 @@ public class VentanaMenu extends JFrame {
         panelEstado.add(estadoPago);
         panelEstado.add(ticketLabel);
 
-        // Panel principal
         JPanel panelPrincipal = new JPanel(new BorderLayout());
         panelPrincipal.add(panelEstado, BorderLayout.NORTH);
         panelPrincipal.add(cardPanel, BorderLayout.CENTER);
 
         add(panelPrincipal);
 
-        // Inicializar el total de la factura
         totalFactura = 0.0;
 
-        // Asegurarse de que la vista inicial sea 'categorias'
         cardLayout.show(cardPanel, "Categorias");
+
+        // Llamamos a un hilo para cerrar la ventana después de 60 segundos
+        cerrarVentanaConTiempo(60000); // 60 segundos
     }
 
-    // Crear panel con 4 productos en las esquinas
+    private void cerrarVentanaConTiempo(long tiempo) {
+        new Thread(() -> {
+            try {
+                // Esperamos el tiempo especificado
+                Thread.sleep(tiempo);
+                
+                // Cierra la ventana
+                System.exit(0);  // Cierra la aplicación
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
     private JPanel crearPanelCategoria(String categoria) {
-        JPanel panel = new JPanel(null); // Layout libre para posicionar en esquinas
+        JPanel panel = new JPanel(null);
 
         JLabel titulo = new JLabel("Productos de " + categoria);
         titulo.setFont(new Font("Arial", Font.BOLD, 20));
         titulo.setBounds(280, 20, 300, 30);
         panel.add(titulo);
 
-        // Precios de los productos
         double precioProducto1 = 15000.0;
         double precioProducto2 = 18000.0;
         double precioProducto3 = 20000.0;
         double precioProducto4 = 25000.0;
 
-        // Crear botones de productos con precios
         JButton producto1 = new JButton(categoria + " 1 - $" + precioProducto1);
         producto1.setBounds(20, 80, 200, 100);
         producto1.addActionListener(e -> agregarProductoAFactura(categoria + " 1", precioProducto1));
@@ -145,7 +156,6 @@ public class VentanaMenu extends JFrame {
         producto4.addActionListener(e -> agregarProductoAFactura(categoria + " 4", precioProducto4));
         panel.add(producto4);
 
-        // Botón para volver
         JButton volverBtn = new JButton("Volver");
         volverBtn.setBounds(320, 500, 150, 40);
         volverBtn.addActionListener(e -> cardLayout.show(cardPanel, "Categorias"));
@@ -154,15 +164,28 @@ public class VentanaMenu extends JFrame {
         return panel;
     }
 
-    // Método para agregar un producto a la factura
     private void agregarProductoAFactura(String producto, double precio) {
-        totalFactura += precio; // Acumular el precio en el total
+        totalFactura += precio;
         String facturaTexto = facturaArea.getText();
         facturaTexto += producto + " - $" + String.format("%.2f", precio) + "\n";
-        facturaArea.setText(facturaTexto); // Actualizar la factura
+        facturaArea.setText(facturaTexto);
     }
 
-    // Getters necesarios para el controlador
+    // Nueva función para mostrar la factura
+    private void mostrarFactura() {
+        String facturaTexto = "Factura Finalizada:\n";
+        facturaTexto += facturaArea.getText();
+        facturaTexto += "\nTotal: $" + String.format("%.2f", totalFactura);
+        facturaArea.setText(facturaTexto);
+        cardLayout.show(cardPanel, "Factura");
+    }
+
+    // Nuevo método para agregar el ActionListener para finalizar el pedido
+    public void addFinalizarPedidoListener(ActionListener listener) {
+        botonFinalizar.addActionListener(listener);
+    }
+
+    // Métodos de acceso
     public ArrayList<JButton> getBotonesCategorias() {
         return botonesCategorias;
     }
@@ -195,7 +218,6 @@ public class VentanaMenu extends JFrame {
         return botonParaLlevar;
     }
 
-    // Métodos para que el controlador use
     public void mostrarCategoria(String categoria) {
         cardLayout.show(cardPanel, categoria);
     }

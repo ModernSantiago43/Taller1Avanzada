@@ -8,15 +8,17 @@ package edu.progavud.taller1.Control;
  *
  * @author Santiago
  */
+
+
+
 import edu.progavud.taller1.Vista.VentanaInicio;
 import edu.progavud.taller1.Vista.VentanaMenu;
-import edu.progavud.taller1.Control.ControladorCategorias;
-import edu.progavud.taller1.Control.ControladorFactura;
-import edu.progavud.taller1.Control.ControladorPagos;
+import edu.progavud.taller1.Vista.VentanaFactura;
 
 public class ControladorPrincipal {
-    private VentanaInicio ventanaInicio;  // Cambié "Vista" a "ventanaInicio" para mayor claridad
-    private VentanaMenu ventanaMenu;      // Cambié "vista" a "ventanaMenu"
+    private VentanaInicio ventanaInicio;
+    private VentanaMenu ventanaMenu;
+    private VentanaFactura ventanaFactura;
     private ControladorCategorias controladorCategorias;
     private ControladorFactura controladorFactura;
     private ControladorPagos controladorPagos;
@@ -25,20 +27,25 @@ public class ControladorPrincipal {
         // Inicializamos las vistas
         ventanaInicio = new VentanaInicio();
         ventanaMenu = new VentanaMenu();
-        
+        ventanaFactura = new VentanaFactura();
+
         // Inicializamos los controladores
         controladorCategorias = new ControladorCategorias(ventanaMenu);
-        controladorFactura = new ControladorFactura(ventanaMenu);
+        controladorFactura = new ControladorFactura(ventanaFactura);
         controladorPagos = new ControladorPagos(ventanaMenu, controladorFactura);
 
-        // Agregar el listener al botón "Para llevar"
         ventanaInicio.addParaLlevarListener(e -> {
-            // Ocultar la ventana de inicio
             ventanaInicio.ocultar();
 
             // Mostrar la ventana de menú
-            ventanaMenu.mostrarCategorias();  // Esto muestra las categorías del menú
-            ventanaMenu.setVisible(true);     // Asegúrate de que la ventana de menú sea visible
+            ventanaMenu.mostrarCategorias();
+            ventanaMenu.setVisible(true);
+        });
+
+        // Agregar el listener para finalizar el pedido
+        ventanaMenu.addFinalizarPedidoListener(e -> {
+           
+            ventanaFactura.setVisible(true);
         });
 
         // Mostramos la ventana de inicio
@@ -46,7 +53,6 @@ public class ControladorPrincipal {
     }
 
     public static void main(String[] args) {
-        // Creamos el controlador principal que manejará todo el flujo
         new ControladorPrincipal();
     }
 }

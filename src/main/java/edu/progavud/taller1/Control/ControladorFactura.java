@@ -3,37 +3,70 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package edu.progavud.taller1.Control;
+ 
+ /**
+  *
+  * @author Santiago
+  */
 
-/**
- *
- * @author Santiago
- */
-import edu.progavud.taller1.Vista.VentanaMenu;
+
+import edu.progavud.taller1.Vista.VentanaFactura;
+import javax.swing.JOptionPane;
 
 public class ControladorFactura {
-    private VentanaMenu vista;
+    private VentanaFactura vista;
     private double total;
 
-    public ControladorFactura(VentanaMenu vista) {
+    public ControladorFactura(VentanaFactura vista) {
         this.vista = vista;
-        this.total = 0.0;  // Inicializamos el total a 0
+        this.total = 0.0;
+
+        // Añadir el listener al botón de pagar
+        this.vista.addPagarListener(e -> procesarPago());
     }
 
     public void agregarItemAFactura(String item, double precio) {
-        total += precio;  // Sumar el precio al total
+        total += precio;  // Actualizar el total
         String linea = item + " - $" + String.format("%.2f", precio);
-        vista.mostrarFactura(linea);  // Mostrar la línea del producto
-        vista.actualizarTotal(total);  // Actualizar el total en la vista
+        vista.mostrarFactura(linea);  // Mostrar la línea en la factura
+        vista.mostrarFactura("\nTotal: $" + String.format("%.2f", total));  // Actualizar el total
     }
 
     public void limpiarFactura() {
-        total = 0.0;  // Reseteamos el total
+        total = 0.0;
         vista.mostrarFactura("Factura vacía.");
-        vista.actualizarTotal(total);  // Actualizar el total en la vista
     }
 
     public double obtenerTotal() {
         return total;
     }
-    
+
+    private void procesarPago() {
+        String cedula = vista.getCedula();
+        String mayorEdad = vista.getMayorEdad();
+        String indigena = vista.getIndigena();
+
+        if (validarDatos(cedula, mayorEdad, indigena)) {
+            JOptionPane.showMessageDialog(vista, "Pago procesado correctamente.");
+            vista.dispose();  // Cerrar la ventana de la factura
+        } else {
+            JOptionPane.showMessageDialog(vista, "Por favor ingrese datos válidos.");
+        }
+    }
+
+    private boolean validarDatos(String cedula, String mayorEdad, String indigena) {
+        if (cedula.isEmpty() || mayorEdad.isEmpty() || indigena.isEmpty()) {
+            return false;
+        }
+
+        if (!mayorEdad.equalsIgnoreCase("sí") && !mayorEdad.equalsIgnoreCase("no")) {
+            return false;
+        }
+
+        if (!indigena.equalsIgnoreCase("sí") && !indigena.equalsIgnoreCase("no")) {
+            return false;
+        }
+
+        return true;
+    }
 }
